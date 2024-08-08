@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@300&display=swap" rel="stylesheet">
+ 
+    <title>DO THE MATH</title>
+    
+</head>
+<body style="display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Mitr';">
+    <img src="bg.jpeg" alt="Background" style="position: absolute; width: 100%; height: 100%; object-fit: cover;  z-index: -1;">
+    <div style="background-color: rgba(255, 255, 255, 0.8); padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); text-align: center;">
+        <div class="score" style="display: flex; justify-content: center; align-items: center; font-size: 40px;">
+            <p>คะแนน: <span id="score">0</span></p>
+        </div>
+        <div class="timer" style="display: flex; justify-content: center; align-items: center; height: auto; background-color: aliceblue; font-size: large;">
+            <p>เหลือเวลา: <span id="timer">10</span> seconds</p>
+        </div>
+        <div class="quiz-box">
+            <div id="question" style="display: flex; flex-direction: row; justify-content: space-evenly; font-size: xx-large;">
+                <p id="num1" style="padding: 45px; ;border: 2px solid black;"></p>
+                <p id="operator" style="padding: 45px;  border-bottom: 2px solid black; border-top: 2px solid black;"></p>
+                <p id="num2" style="padding: 45px; ;border: 2px solid black;"></p>
+            </div>
+            <input type="text" id="answer" style="margin: 5px; width: 300px; height: 50px;  font-family: 'Mitr';" placeholder="Your answer"><br>
+            <button onclick="checkAnswer()" style="margin: 5px; width: 150px; height: 50px; font-size: larger; font-family: 'Mitr';">ยืนยัน</button>
+            <button onclick="skip()" style="margin: 5px; width: 100px; height: 50px; font-size: larger; font-family: 'Mitr';">ข้าม</button>
+            <p id="feedback"></p>
+            <p>เหลือข้อทั้งหมด: <span id="questions-left">20</span></p>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let correctAnswer;
+        let timer;
+        let timeLeft = 10;
+        let questionsLeft = 20;
+
+        function generateQuestion() {
+            if (questionsLeft <= 0) {
+                alert(`คะแนนของคุณคือ ${score}`);
+                resetQuiz();
+                return;
+            }
+
+            clearInterval(timer);
+            timeLeft = 10;
+            document.getElementById('timer').textContent = timeLeft;
+
+            const num1 = Math.floor(Math.random() * 10);
+            const num2 = Math.floor(Math.random() * 10);
+            const operators = ['+', '-', '*', '/'];
+            const operator = operators[Math.floor(Math.random() * operators.length)];
+
+            switch (operator) {
+                case '+':
+                    correctAnswer = num1 + num2;
+                    break;
+                case '-':
+                    correctAnswer = num1 - num2;
+                    break;
+                case '*':
+                    correctAnswer = num1 * num2;
+                    break;
+                case '/':
+                    correctAnswer = (num1 / num2).toFixed(2);
+                    break;
+            }
+
+            document.getElementById('num1').textContent = `${num1}`;
+            document.getElementById('operator').textContent = `${operator}`;
+            document.getElementById('num2').textContent = ` ${num2}`;
+            startTimer();
+        }
+
+        function checkAnswer() {
+            if (questionsLeft <= 0) return;
+
+            const userAnswer = parseFloat(document.getElementById('answer').value);
+            const feedback = document.getElementById('feedback');
+
+            if (userAnswer === parseFloat(correctAnswer)) {
+                feedback.textContent = "ถูกต้อง!";
+                feedback.style.color = "green";
+                score++;
+            } else {
+                feedback.textContent = `ไม่ถูกต้อง! คำตอบที่ถูกต้องคือ ${correctAnswer}`;
+                feedback.style.color = "red";
+            }
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('answer').value = '';
+
+            questionsLeft--;
+            document.getElementById('questions-left').textContent = questionsLeft;
+
+            if (questionsLeft <= 0) {
+                clearInterval(timer);
+                alert(`คะแนนของคุณคือ ${score}.`);
+                resetQuiz();
+            } else {
+                generateQuestion();
+            }
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    const feedback = document.getElementById('feedback');
+                    feedback.textContent = `หมดเวลา! คำตอบที่ถูกต้องคือ ${correctAnswer}`;
+                    feedback.style.color = "red";
+
+                    questionsLeft--;
+                    document.getElementById('questions-left').textContent = questionsLeft;
+
+                    if (questionsLeft <= 0) {
+                        alert(`คะแนนของคุณคือ ${score}`);
+                        resetQuiz();
+                    } else {
+                        generateQuestion();
+                    }
+                }
+            }, 1000);
+        }
+
+        function resetQuiz() {
+            score = 0;
+            questionsLeft = 20;
+            document.getElementById('score').textContent = score;
+            document.getElementById('questions-left').textContent = questionsLeft;
+            document.getElementById('feedback').textContent = '';
+            generateQuestion();
+        }
+
+        function skip() {
+            if (questionsLeft <= 0) {
+                alert(`คะแนนของคุณคือ ${score}`);
+                resetQuiz();
+            } else {
+                questionsLeft--;
+                document.getElementById('score').textContent = score;
+                document.getElementById('questions-left').textContent = questionsLeft;
+                document.getElementById('feedback').textContent = '';
+                generateQuestion();
+            }
+        }
+
+        document.getElementById('answer').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        generateQuestion();
+    </script>
+</body>
+</html>
+
